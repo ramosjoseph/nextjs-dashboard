@@ -9,10 +9,13 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+const sql = process.env.POSTGRES_URL 
+  ? postgres(process.env.POSTGRES_URL, { ssl: 'require' })
+  : null;
 
 export async function fetchRevenue() {
   try {
+    if (!sql) throw new Error('Database not configured');
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
@@ -32,6 +35,7 @@ export async function fetchRevenue() {
 
 export async function fetchLatestInvoices() {
   try {
+    if (!sql) throw new Error('Database not configured');
     const data = await sql<LatestInvoiceRaw[]>`
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
       FROM invoices
@@ -52,6 +56,7 @@ export async function fetchLatestInvoices() {
 
 export async function fetchCardData() {
   try {
+    if (!sql) throw new Error('Database not configured');
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
     // how to initialize multiple queries in parallel with JS.
@@ -93,6 +98,7 @@ export async function fetchFilteredInvoices(
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
+    if (!sql) throw new Error('Database not configured');
     const invoices = await sql<InvoicesTable[]>`
       SELECT
         invoices.id,
@@ -123,6 +129,7 @@ export async function fetchFilteredInvoices(
 
 export async function fetchInvoicesPages(query: string) {
   try {
+    if (!sql) throw new Error('Database not configured');
     const data = await sql`SELECT COUNT(*)
     FROM invoices
     JOIN customers ON invoices.customer_id = customers.id
@@ -144,6 +151,7 @@ export async function fetchInvoicesPages(query: string) {
 
 export async function fetchInvoiceById(id: string) {
   try {
+    if (!sql) throw new Error('Database not configured');
     const data = await sql<InvoiceForm[]>`
       SELECT
         invoices.id,
@@ -169,6 +177,7 @@ export async function fetchInvoiceById(id: string) {
 
 export async function fetchCustomers() {
   try {
+    if (!sql) throw new Error('Database not configured');
     const customers = await sql<CustomerField[]>`
       SELECT
         id,
@@ -186,6 +195,7 @@ export async function fetchCustomers() {
 
 export async function fetchFilteredCustomers(query: string) {
   try {
+    if (!sql) throw new Error('Database not configured');
     const data = await sql<CustomersTableType[]>`
 		SELECT
 		  customers.id,

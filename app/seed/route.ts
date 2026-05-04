@@ -2,7 +2,9 @@ import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+const sql = process.env.POSTGRES_URL
+  ? postgres(process.env.POSTGRES_URL, { ssl: 'require' })
+  : null;
 
 async function seedUsers() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -102,6 +104,11 @@ async function seedRevenue() {
 }
 
 export async function GET() {
+  if (!sql) {
+    return Response.json({ 
+      message: 'Database not configured. Set POSTGRES_URL environment variable.' 
+    }, { status: 503 });
+  }
   try {
     const result = await sql.begin((sql) => [
       seedUsers(),
